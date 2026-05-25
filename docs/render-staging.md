@@ -106,7 +106,7 @@ If it returns `401`, the browser is probably not sending the Django session cook
 If the network tab shows repeated `301` or `308` responses, check that:
 
 - backend `DJANGO_SECURE_SSL_REDIRECT=False` on Render staging
-- frontend `API_PROXY_TARGET` has only the backend origin, not `/api`
+- frontend `API_PROXY_TARGET` has only the backend origin, not `/api`, and not the frontend URL
 - frontend `NEXT_PUBLIC_API_BASE_URL=/api`
 
 For Render frontend/API deployments, prefer same-origin browser requests through the Next.js proxy:

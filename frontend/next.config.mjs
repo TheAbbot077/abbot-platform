@@ -3,7 +3,26 @@ const rawApiProxyTarget =
   process.env.API_PROXY_TARGET ??
   process.env.NEXT_PUBLIC_API_PROXY_TARGET ??
   "https://abbot-study-api-staging.onrender.com";
-const apiProxyTarget = rawApiProxyTarget.replace(/\/+$/, "").replace(/\/api$/, "");
+const normalizedApiProxyTarget = rawApiProxyTarget.replace(/\/+$/, "").replace(/\/api$/, "");
+const frontendHosts = new Set([
+  "abbot-study-staging.onrender.com",
+  process.env.RENDER_EXTERNAL_HOSTNAME,
+].filter(Boolean));
+
+function resolveApiProxyTarget(target) {
+  try {
+    const parsedTarget = new URL(target);
+    if (frontendHosts.has(parsedTarget.hostname)) {
+      return "https://abbot-study-api-staging.onrender.com";
+    }
+  } catch {
+    return "https://abbot-study-api-staging.onrender.com";
+  }
+
+  return target;
+}
+
+const apiProxyTarget = resolveApiProxyTarget(normalizedApiProxyTarget);
 
 const nextConfig = {
   skipTrailingSlashRedirect: true,
