@@ -1,5 +1,15 @@
 /** @type {import('next').NextConfig} */
+const apiProxyTarget = process.env.API_PROXY_TARGET ?? "http://localhost:8000";
+
 const nextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${apiProxyTarget}/api/:path*`
+      }
+    ];
+  },
   async headers() {
     return [
       {

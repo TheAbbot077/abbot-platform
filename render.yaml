@@ -117,7 +117,9 @@ services:
     startCommand: npm run start -- -p $PORT
     envVars:
       - key: NEXT_PUBLIC_API_BASE_URL
-        value: https://abbot-study-api-staging.onrender.com/api
+        value: /api
+      - key: API_PROXY_TARGET
+        value: https://abbot-study-api-staging.onrender.com
 
   - type: redis
     name: abbot-study-redis-staging

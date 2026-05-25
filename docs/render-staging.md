@@ -92,6 +92,7 @@ Backend:
 Frontend:
 
 - `NEXT_PUBLIC_API_BASE_URL`
+- `API_PROXY_TARGET`
 
 Do not commit real API keys, database URLs, Redis URLs, or Django secrets.
 
@@ -100,7 +101,16 @@ Do not commit real API keys, database URLs, Redis URLs, or Django secrets.
 If a user logs in successfully but lands back on `/login`, check the browser network tab for `/api/auth/me/`.
 If it returns `401`, the browser is probably not sending the Django session cookie.
 
-For Render frontend/API deployments on separate origins, set:
+For Render frontend/API deployments, prefer same-origin browser requests through the Next.js proxy:
+
+```text
+NEXT_PUBLIC_API_BASE_URL=/api
+API_PROXY_TARGET=https://abbot-study-api-staging.onrender.com
+```
+
+This is especially important on mobile browsers, where cross-origin cookies are more aggressively restricted.
+
+The backend also supports direct cross-origin session cookies when needed. In that case, set:
 
 ```text
 SESSION_COOKIE_SAMESITE=None
