@@ -21,6 +21,10 @@ services:
         value: "True"
       - key: DJANGO_MEDIA_ROOT
         value: /var/data/media
+      - key: SESSION_COOKIE_SAMESITE
+        value: None
+      - key: CSRF_COOKIE_SAMESITE
+        value: None
       - key: DATABASE_URL
         fromDatabase:
           name: abbot-study-postgres-staging
@@ -54,6 +58,10 @@ services:
         value: abbot-study-api-staging.onrender.com
       - key: DJANGO_MEDIA_ROOT
         value: /var/data/media
+      - key: SESSION_COOKIE_SAMESITE
+        value: None
+      - key: CSRF_COOKIE_SAMESITE
+        value: None
       - key: DATABASE_URL
         fromDatabase:
           name: abbot-study-postgres-staging
@@ -83,6 +91,10 @@ services:
         value: abbot-study-api-staging.onrender.com
       - key: DJANGO_MEDIA_ROOT
         value: /var/data/media
+      - key: SESSION_COOKIE_SAMESITE
+        value: None
+      - key: CSRF_COOKIE_SAMESITE
+        value: None
       - key: DATABASE_URL
         fromDatabase:
           name: abbot-study-postgres-staging

@@ -36,8 +36,11 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=True)  # noqa: F405
 
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = env("SESSION_COOKIE_SAMESITE", default="Lax")  # noqa: F405
-CSRF_COOKIE_SAMESITE = env("CSRF_COOKIE_SAMESITE", default="Lax")  # noqa: F405
+# Render staging commonly serves the frontend and API from different origins.
+# Cross-origin session auth needs SameSite=None plus Secure cookies so the
+# browser sends the Django session cookie on API requests after login.
+SESSION_COOKIE_SAMESITE = env("SESSION_COOKIE_SAMESITE", default="None")  # noqa: F405
+CSRF_COOKIE_SAMESITE = env("CSRF_COOKIE_SAMESITE", default="None")  # noqa: F405
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = env("DJANGO_REFERRER_POLICY", default="same-origin")  # noqa: F405

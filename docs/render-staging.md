@@ -80,6 +80,8 @@ Backend:
 - `DJANGO_SECRET_KEY`
 - `DJANGO_ALLOWED_HOSTS`
 - `DJANGO_MEDIA_ROOT`
+- `SESSION_COOKIE_SAMESITE=None`
+- `CSRF_COOKIE_SAMESITE=None`
 - `DATABASE_URL`
 - `REDIS_URL`
 - `CORS_ALLOWED_ORIGINS`
@@ -92,3 +94,17 @@ Frontend:
 - `NEXT_PUBLIC_API_BASE_URL`
 
 Do not commit real API keys, database URLs, Redis URLs, or Django secrets.
+
+## Login Redirects Back To Login
+
+If a user logs in successfully but lands back on `/login`, check the browser network tab for `/api/auth/me/`.
+If it returns `401`, the browser is probably not sending the Django session cookie.
+
+For Render frontend/API deployments on separate origins, set:
+
+```text
+SESSION_COOKIE_SAMESITE=None
+CSRF_COOKIE_SAMESITE=None
+```
+
+These must be paired with HTTPS and secure cookies, which `config.settings_production` enables.
