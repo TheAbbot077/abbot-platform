@@ -33,7 +33,9 @@ MIDDLEWARE = [
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=True)  # noqa: F405
+# Render already terminates HTTPS at the edge. Keeping Django's own HTTPS
+# redirect off by default avoids proxy-level 301 loops during staging/beta.
+SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=False)  # noqa: F405
 
 SESSION_COOKIE_HTTPONLY = True
 # Render staging commonly serves the frontend and API from different origins.

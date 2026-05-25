@@ -37,7 +37,7 @@ Required frontend variables:
 - Confirm `CSRF_COOKIE_SECURE=True`.
 - Confirm `SESSION_COOKIE_HTTPONLY=True`.
 - Confirm `SESSION_COOKIE_SAMESITE=Lax` or stricter.
-- Confirm HTTPS redirects are handled once. On Render, prefer the platform HTTPS edge redirect and avoid enabling Django redirects if they create proxy loops.
+- Confirm HTTPS redirects are handled once. On Render, prefer the platform HTTPS edge redirect. Keep `DJANGO_SECURE_SSL_REDIRECT=False` unless a full request/response redirect test proves Django redirects are safe behind the proxy.
 - Confirm HSTS settings are enabled after HTTPS is verified.
 - Confirm `ALLOWED_HOSTS` contains only production backend hosts.
 - Confirm `CORS_ALLOWED_ORIGINS` and `CSRF_TRUSTED_ORIGINS` contain only production frontend origins.

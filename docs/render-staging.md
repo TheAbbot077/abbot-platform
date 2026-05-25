@@ -108,6 +108,7 @@ If the network tab shows repeated `301` or `308` responses, check that:
 - backend `DJANGO_SECURE_SSL_REDIRECT=False` on Render staging
 - frontend `API_PROXY_TARGET` has only the backend origin, not `/api`, and not the frontend URL
 - frontend `NEXT_PUBLIC_API_BASE_URL=/api`
+- frontend was redeployed with a cleared build cache after changing proxy env vars
 
 For Render frontend/API deployments, prefer same-origin browser requests through the Next.js proxy:
 
@@ -118,6 +119,14 @@ NEXT_PUBLIC_API_PROXY_TARGET=https://abbot-study-api-staging.onrender.com
 ```
 
 This is especially important on mobile browsers, where cross-origin cookies are more aggressively restricted.
+
+You can also test the proxy using:
+
+```text
+https://abbot-study-staging.onrender.com/api-proxy-health
+```
+
+It should return the same payload as the backend health check.
 
 The backend also supports direct cross-origin session cookies when needed. In that case, set:
 
