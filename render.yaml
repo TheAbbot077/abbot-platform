@@ -1,0 +1,117 @@
+services:
+  - type: web
+    name: abbot-study-api-staging
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    healthCheckPath: /api/health/
+    disk:
+      name: abbot-study-media-staging
+      mountPath: /var/data/media
+      sizeGB: 1
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings_production
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DJANGO_ALLOWED_HOSTS
+        value: abbot-study-api-staging.onrender.com
+      - key: DJANGO_SECURE_SSL_REDIRECT
+        value: "True"
+      - key: DJANGO_MEDIA_ROOT
+        value: /var/data/media
+      - key: DATABASE_URL
+        fromDatabase:
+          name: abbot-study-postgres-staging
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: abbot-study-redis-staging
+          property: connectionString
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://abbot-study-staging.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://abbot-study-staging.onrender.com
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_TUTOR_MODEL
+        value: gpt-4o-mini
+
+  - type: worker
+    name: abbot-study-celery-staging
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A config worker --loglevel=info
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings_production
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DJANGO_ALLOWED_HOSTS
+        value: abbot-study-api-staging.onrender.com
+      - key: DJANGO_MEDIA_ROOT
+        value: /var/data/media
+      - key: DATABASE_URL
+        fromDatabase:
+          name: abbot-study-postgres-staging
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: abbot-study-redis-staging
+          property: connectionString
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_TUTOR_MODEL
+        value: gpt-4o-mini
+
+  - type: worker
+    name: abbot-study-celery-beat-staging
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A config beat --loglevel=info
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings_production
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DJANGO_ALLOWED_HOSTS
+        value: abbot-study-api-staging.onrender.com
+      - key: DJANGO_MEDIA_ROOT
+        value: /var/data/media
+      - key: DATABASE_URL
+        fromDatabase:
+          name: abbot-study-postgres-staging
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: abbot-study-redis-staging
+          property: connectionString
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_TUTOR_MODEL
+        value: gpt-4o-mini
+
+  - type: web
+    name: abbot-study-staging
+    runtime: node
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start -- -p $PORT
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://abbot-study-api-staging.onrender.com/api
+
+  - type: redis
+    name: abbot-study-redis-staging
+    ipAllowList: []
+
+databases:
+  - name: abbot-study-postgres-staging
+    databaseName: abbot_study_staging
+    user: abbot_study_staging_user

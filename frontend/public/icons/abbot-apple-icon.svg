@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Abbot Study Apple touch icon">
+  <rect width="180" height="180" rx="38" fill="#111111"/>
+  <circle cx="90" cy="92" r="66" fill="#f5c542" opacity="0.18"/>
+  <path d="M42 115c16-10 32-12 48-4 16-8 32-6 48 4v20c-16-10-32-11-48-4-16-7-32-6-48 4v-20Z" fill="#ffffff"/>
+  <path d="M48 106c14-7 28-8 41-3V58c-13-5-27-4-41 3v45Zm44-3c14-5 28-4 41 3V61c-13-7-27-8-41-3v45Z" fill="#f5c542"/>
+  <path d="M70 104 90 45l20 59H97l-3-12h-8l-3 12H70Z" fill="#111111"/>
+  <path d="m54 52 36-16 36 16-36 16-36-16Z" fill="#ffffff"/>
+  <path d="M121 58v20" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="121" cy="84" r="6" fill="#f5c542"/>
+</svg>

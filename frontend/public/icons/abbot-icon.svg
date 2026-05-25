@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Abbot Study icon">
+  <rect width="512" height="512" rx="104" fill="#111111"/>
+  <circle cx="256" cy="256" r="188" fill="#f5c542" opacity="0.16"/>
+  <path d="M118 328c44-26 91-31 138-11 47-20 94-15 138 11v54c-44-25-91-29-138-10-47-19-94-15-138 10v-54Z" fill="#ffffff"/>
+  <path d="M130 306c39-20 79-23 120-9V164c-41-14-81-11-120 9v133Zm132-9c41-14 81-11 120 9V173c-39-20-79-23-120-9v133Z" fill="#f5c542"/>
+  <path d="M200 296 256 128l56 168h-38l-9-34h-18l-9 34h-38Zm52-66h8l-4-31-4 31Z" fill="#111111"/>
+  <path d="m152 146 104-46 104 46-104 46-104-46Z" fill="#ffffff"/>
+  <path d="M344 162v58" stroke="#ffffff" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="344" cy="232" r="17" fill="#f5c542"/>
+</svg>
