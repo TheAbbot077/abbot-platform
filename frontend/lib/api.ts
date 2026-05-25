@@ -73,8 +73,9 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
         ...init?.headers
       }
     });
-  } catch {
-    throw new Error(`Could not reach the backend at ${API_BASE_URL}. Make sure Django is running and CORS allows this frontend.`);
+  } catch (caught) {
+    const detail = caught instanceof Error ? caught.message : "Unknown network error";
+    throw new Error(`Could not reach ${API_BASE_URL}${path}. ${detail}`);
   }
 
   if (!response.ok) {
@@ -281,7 +282,6 @@ export async function updateUserSettings(theme: ThemeKey): Promise<UserSettings>
 }
 
 export async function signup(payload: SignupPayload): Promise<AuthResponse> {
-  await ensureCsrfCookie();
   return requestJson<AuthResponse>("/auth/signup/", {
     method: "POST",
     body: JSON.stringify(payload)
@@ -289,7 +289,6 @@ export async function signup(payload: SignupPayload): Promise<AuthResponse> {
 }
 
 export async function login(username: string, password: string): Promise<AuthResponse> {
-  await ensureCsrfCookie();
   return requestJson<AuthResponse>("/auth/login/", {
     method: "POST",
     body: JSON.stringify({ username, password })
@@ -340,8 +339,9 @@ export async function uploadDocument(title: string, subjectId: number | null, fi
       headers: csrfToken ? { "X-CSRFToken": csrfToken } : {},
       body: formData
     });
-  } catch {
-    throw new Error(`Could not reach the backend at ${API_BASE_URL}. Make sure Django is running and CORS allows this frontend.`);
+  } catch (caught) {
+    const detail = caught instanceof Error ? caught.message : "Unknown network error";
+    throw new Error(`Could not reach ${API_BASE_URL}/documents/. ${detail}`);
   }
 
   if (!response.ok) {

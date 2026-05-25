@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth import login, logout
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import permissions, response, status, views
 
@@ -44,6 +45,7 @@ class UserSettingsView(views.APIView):
         return response.Response(serializer.data)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class SignupView(views.APIView):
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
@@ -62,6 +64,7 @@ class SignupView(views.APIView):
         return response.Response({"user": UserSerializer(user).data}, status=status.HTTP_201_CREATED)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class LoginView(views.APIView):
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
