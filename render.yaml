@@ -18,7 +18,7 @@ services:
       - key: DJANGO_ALLOWED_HOSTS
         value: abbot-study-api-staging.onrender.com
       - key: DJANGO_SECURE_SSL_REDIRECT
-        value: "True"
+        value: "False"
       - key: DJANGO_MEDIA_ROOT
         value: /var/data/media
       - key: SESSION_COOKIE_SAMESITE

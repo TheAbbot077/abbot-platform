@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
-const apiProxyTarget =
+const rawApiProxyTarget =
   process.env.API_PROXY_TARGET ??
   process.env.NEXT_PUBLIC_API_PROXY_TARGET ??
   "https://abbot-study-api-staging.onrender.com";
+const apiProxyTarget = rawApiProxyTarget.replace(/\/+$/, "").replace(/\/api$/, "");
 
 const nextConfig = {
+  skipTrailingSlashRedirect: true,
   async rewrites() {
     return [
       {

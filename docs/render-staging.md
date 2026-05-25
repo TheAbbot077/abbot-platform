@@ -9,6 +9,8 @@ This project is staged on Render as three services:
 
 The API uses Render PostgreSQL through `DATABASE_URL` and Render Redis through `REDIS_URL`.
 Uploaded textbooks use a Render disk mounted at `/var/data/media` for staging.
+Render already serves HTTPS at the edge, so staging keeps Django's internal
+`DJANGO_SECURE_SSL_REDIRECT=False` to avoid proxy redirect loops.
 
 ## Backend API
 
@@ -101,6 +103,11 @@ Do not commit real API keys, database URLs, Redis URLs, or Django secrets.
 
 If a user logs in successfully but lands back on `/login`, check the browser network tab for `/api/auth/me/`.
 If it returns `401`, the browser is probably not sending the Django session cookie.
+If the network tab shows repeated `301` or `308` responses, check that:
+
+- backend `DJANGO_SECURE_SSL_REDIRECT=False` on Render staging
+- frontend `API_PROXY_TARGET` has only the backend origin, not `/api`
+- frontend `NEXT_PUBLIC_API_BASE_URL=/api`
 
 For Render frontend/API deployments, prefer same-origin browser requests through the Next.js proxy:
 
