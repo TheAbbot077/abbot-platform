@@ -120,6 +120,8 @@ services:
         value: /api
       - key: API_PROXY_TARGET
         value: https://abbot-study-api-staging.onrender.com
+      - key: NEXT_PUBLIC_API_PROXY_TARGET
+        value: https://abbot-study-api-staging.onrender.com
 
   - type: redis
     name: abbot-study-redis-staging

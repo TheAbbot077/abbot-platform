@@ -93,6 +93,7 @@ Frontend:
 
 - `NEXT_PUBLIC_API_BASE_URL`
 - `API_PROXY_TARGET`
+- `NEXT_PUBLIC_API_PROXY_TARGET`
 
 Do not commit real API keys, database URLs, Redis URLs, or Django secrets.
 
@@ -106,6 +107,7 @@ For Render frontend/API deployments, prefer same-origin browser requests through
 ```text
 NEXT_PUBLIC_API_BASE_URL=/api
 API_PROXY_TARGET=https://abbot-study-api-staging.onrender.com
+NEXT_PUBLIC_API_PROXY_TARGET=https://abbot-study-api-staging.onrender.com
 ```
 
 This is especially important on mobile browsers, where cross-origin cookies are more aggressively restricted.

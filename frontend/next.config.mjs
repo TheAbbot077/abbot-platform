@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
-const apiProxyTarget = process.env.API_PROXY_TARGET ?? "http://localhost:8000";
+const apiProxyTarget =
+  process.env.API_PROXY_TARGET ??
+  process.env.NEXT_PUBLIC_API_PROXY_TARGET ??
+  "https://abbot-study-api-staging.onrender.com";
 
 const nextConfig = {
   async rewrites() {

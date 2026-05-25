@@ -65,6 +65,7 @@ For hosted deployments, the frontend should use the built-in API proxy:
 ```text
 NEXT_PUBLIC_API_BASE_URL=/api
 API_PROXY_TARGET=https://your-backend-service.example.com
+NEXT_PUBLIC_API_PROXY_TARGET=https://your-backend-service.example.com
 ```
 
 This keeps browser API calls same-origin, which is more reliable on mobile browsers.
