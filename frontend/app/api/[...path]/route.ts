@@ -46,10 +46,21 @@ async function proxyRequest(request: NextRequest, context: { params: Promise<{ p
 
   const responseHeaders = new Headers();
   upstreamResponse.headers.forEach((value, key) => {
-    if (!excludedResponseHeaders.has(key.toLowerCase())) {
+    if (key.toLowerCase() !== "set-cookie" && !excludedResponseHeaders.has(key.toLowerCase())) {
       responseHeaders.set(key, value);
     }
   });
+  const upstreamHeaders = upstreamResponse.headers as Headers & { getSetCookie?: () => string[] };
+  const setCookieHeaders = upstreamHeaders.getSetCookie?.() ?? [];
+  for (const cookie of setCookieHeaders) {
+    responseHeaders.append("Set-Cookie", cookie);
+  }
+  if (setCookieHeaders.length === 0) {
+    const combinedCookie = upstreamResponse.headers.get("set-cookie");
+    if (combinedCookie) {
+      responseHeaders.append("Set-Cookie", combinedCookie);
+    }
+  }
 
   return new Response(upstreamResponse.body, {
     status: upstreamResponse.status,

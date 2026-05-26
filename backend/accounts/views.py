@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth import login, logout
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import permissions, response, status, views
 
@@ -61,6 +62,7 @@ class SignupView(views.APIView):
         user.profile.save(update_fields=["timezone", "device_type", "browser", "operating_system"])
         login(request, user)
         record_login_activity(user, request)
+        get_token(request)
         return response.Response({"user": UserSerializer(user).data}, status=status.HTTP_201_CREATED)
 
 
@@ -75,6 +77,7 @@ class LoginView(views.APIView):
         user = serializer.validated_data["user"]
         login(request, user)
         record_login_activity(user, request)
+        get_token(request)
         return response.Response({"user": UserSerializer(user).data})
 
 
