@@ -29,10 +29,11 @@ def extract_chapters_from_document(self, document_id: int) -> int:
 
     temp_file_path = None
     try:
-        pdf_path = document.file.path
         if document.storage_backend == DocumentStorageBackend.R2:
             temp_file_path = download_object_to_tempfile(document.r2_object_key)
             pdf_path = temp_file_path
+        else:
+            pdf_path = document.file.path
 
         document_text = extract_text_from_pdf(pdf_path)
         content_classification = classify_document_content(document.title, document_text)

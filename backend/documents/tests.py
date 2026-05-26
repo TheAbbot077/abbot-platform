@@ -1320,6 +1320,39 @@ class ChapterExtractionTaskTests(TestCase):
         self.assertEqual(list(self.document.chapters.values_list("sequence_number", flat=True)), [1, 2])
         self.assertEqual(mock_delay.call_count, 2)
 
+    @patch("documents.tasks.download_object_to_tempfile")
+    @patch("documents.tasks.extract_concepts_from_chapter.delay")
+    @patch("documents.tasks.extract_text_from_pdf")
+    def test_chapter_extraction_downloads_r2_file_without_local_file_path(
+        self,
+        mock_extract_text,
+        mock_delay,
+        mock_download,
+    ) -> None:
+        r2_document = Document.objects.create(
+            owner=self.user,
+            title="R2 Notes",
+            storage_backend="r2",
+            r2_object_key="documents/user-1/r2-notes.pdf",
+            original_filename="r2-notes.pdf",
+        )
+        mock_download.return_value = "/tmp/r2-notes.pdf"
+        mock_extract_text.return_value = """
+        Chapter 1: R2 Basics
+        - First concept
+        """
+
+        with self.captureOnCommitCallbacks(execute=True):
+            extracted_count = extract_chapters_from_document(r2_document.id)
+
+        r2_document.refresh_from_db()
+        self.assertEqual(extracted_count, 1)
+        self.assertEqual(r2_document.status, "processing_concepts")
+        self.assertEqual(list(r2_document.chapters.values_list("title", flat=True)), ["Chapter 1: R2 Basics"])
+        mock_download.assert_called_once_with("documents/user-1/r2-notes.pdf")
+        mock_extract_text.assert_called_once_with("/tmp/r2-notes.pdf")
+        self.assertEqual(mock_delay.call_count, 1)
+
     @patch("documents.tasks.extract_concepts_from_chapter.delay")
     @patch("documents.tasks.extract_text_from_pdf")
     def test_chapter_extraction_saves_parser_audit_metadata(self, mock_extract_text, mock_delay) -> None:
