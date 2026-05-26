@@ -289,10 +289,16 @@ export async function signup(payload: SignupPayload): Promise<AuthResponse> {
 }
 
 export async function login(username: string, password: string): Promise<AuthResponse> {
-  return requestJson<AuthResponse>("/auth/login/", {
+  const result = await requestJson<AuthResponse>("/auth/login/", {
     method: "POST",
     body: JSON.stringify({ username, password })
   });
+  try {
+    await ensureCsrfCookie();
+  } catch {
+    // The next unsafe request can request CSRF again. Login itself has already succeeded.
+  }
+  return result;
 }
 
 export async function logout(): Promise<void> {
@@ -322,6 +328,10 @@ export async function deleteSubject(subjectId: number): Promise<void> {
 }
 
 export async function uploadDocument(title: string, subjectId: number | null, file: File): Promise<DocumentUploadResponse> {
+  if (!getCookie("csrftoken")) {
+    await ensureCsrfCookie();
+  }
+
   const csrfToken = getCookie("csrftoken");
   const formData = new FormData();
   formData.append("title", title);
@@ -345,7 +355,14 @@ export async function uploadDocument(title: string, subjectId: number | null, fi
   }
 
   if (!response.ok) {
-    throw new Error(`Upload failed with status ${response.status}`);
+    let message = `Upload failed with status ${response.status}`;
+    try {
+      const errorBody = (await response.json()) as { detail?: string; error?: string; errors?: unknown };
+      message = errorBody.detail ?? errorBody.error ?? formatValidationErrors(errorBody.errors ?? errorBody) ?? message;
+    } catch {
+      // Keep the status-based message when the backend/proxy does not return JSON.
+    }
+    throw new Error(message);
   }
 
   return response.json() as Promise<DocumentUploadResponse>;

@@ -48,11 +48,12 @@ class DocumentSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "status", "chapters", "created_at", "updated_at"]
 
     def validate_file(self, uploaded_file):
-        if uploaded_file.content_type != "application/pdf":
-            raise serializers.ValidationError("Only PDF uploads are supported in this MVP.")
-
         if not uploaded_file.name.lower().endswith(".pdf"):
             raise serializers.ValidationError("Uploaded file must use a .pdf extension.")
+
+        allowed_content_types = {"application/pdf", "application/octet-stream", "binary/octet-stream", ""}
+        if uploaded_file.content_type not in allowed_content_types:
+            raise serializers.ValidationError("Only PDF uploads are supported in this MVP.")
 
         return uploaded_file
 
