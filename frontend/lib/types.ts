@@ -52,6 +52,8 @@ export type DashboardDocument = {
   subject_name: string | null;
   title: string;
   status: string;
+  chapter_count?: number;
+  concept_count?: number;
   completion_percentage: string;
   current_recommended_next_action: string;
   current_chapter_title?: string | null;

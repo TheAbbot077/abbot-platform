@@ -43,9 +43,15 @@ export function ChapterSection({ chapter, onChanged }: { chapter: DashboardChapt
         </div>
       </div>
       <div>
-        {chapter.concepts.map((concept) => (
-          <ConceptRow key={concept.concept_id} concept={concept} />
-        ))}
+        {chapter.concepts.length > 0 ? (
+          chapter.concepts.map((concept) => (
+            <ConceptRow key={concept.concept_id} concept={concept} />
+          ))
+        ) : (
+          <p className="rounded-2xl bg-muted/70 p-4 text-sm text-muted-foreground">
+            The Abbot is still turning this chapter into bite-sized lessons.
+          </p>
+        )}
       </div>
     </section>
   );

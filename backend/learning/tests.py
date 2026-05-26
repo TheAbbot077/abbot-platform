@@ -2178,3 +2178,25 @@ class ProgressDashboardTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual([document["title"] for document in response.data["documents"]], ["Dashboard Course"])
+
+    def test_dashboard_does_not_treat_missing_concepts_as_complete(self) -> None:
+        Concept.objects.filter(chapter__document=self.document).delete()
+        self.document.status = "processing_concepts"
+        self.document.save(update_fields=["status"])
+
+        dashboard = build_progress_dashboard(self.user, subject_id=self.subject.id)
+        document = dashboard["documents"][0]
+
+        self.assertEqual(document["concept_count"], 0)
+        self.assertEqual(document["current_recommended_next_action"], "wait_for_concepts")
+
+    def test_dashboard_flags_ready_document_with_no_concepts(self) -> None:
+        Concept.objects.filter(chapter__document=self.document).delete()
+        self.document.status = "ready"
+        self.document.save(update_fields=["status"])
+
+        dashboard = build_progress_dashboard(self.user, subject_id=self.subject.id)
+        document = dashboard["documents"][0]
+
+        self.assertEqual(document["concept_count"], 0)
+        self.assertEqual(document["current_recommended_next_action"], "concepts_missing")

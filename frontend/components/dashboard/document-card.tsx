@@ -12,7 +12,8 @@ import type { DashboardDocument } from "@/lib/types";
 
 const statusLabels: Record<string, string> = {
   uploaded: "Preparing your textbook",
-  processing_chapters: "Finding chapters",
+  extracting_text: "Reading your textbook",
+  chapters_detected: "Organizing your chapters",
   processing_concepts: "Finding what you need to learn",
   ready: "Ready to study",
   failed: "Needs a quick retry"
@@ -20,7 +21,9 @@ const statusLabels: Record<string, string> = {
 
 export function DocumentCard({ document, onChanged }: { document: DashboardDocument; onChanged: () => void }) {
   const completion = Number(document.completion_percentage);
-  const hasNextAction = document.current_recommended_next_action !== "document_complete";
+  const canContinue = ["start_current_concept", "continue_current_concept"].includes(document.current_recommended_next_action);
+  const isWaitingForConcepts = document.current_recommended_next_action === "wait_for_concepts";
+  const conceptsAreMissing = document.current_recommended_next_action === "concepts_missing";
 
   async function handleRestartDocument() {
     const confirmed = window.confirm("Restart this textbook? This clears progress, attempts, lessons, and reinforcement data, but keeps the uploaded PDF and chapter/concept order.");
@@ -56,7 +59,7 @@ export function DocumentCard({ document, onChanged }: { document: DashboardDocum
             </div>
           </div>
           <div className="grid gap-2 sm:flex sm:flex-wrap">
-            {hasNextAction ? (
+            {canContinue ? (
               <Button asChild className="w-full sm:w-auto">
                 <Link href={`/learn/${document.document_id}${document.subject_id ? `?subject=${document.subject_id}` : ""}`}>
                   Continue
@@ -65,7 +68,7 @@ export function DocumentCard({ document, onChanged }: { document: DashboardDocum
               </Button>
             ) : (
               <Button className="w-full sm:w-auto" disabled>
-                Finished
+                {isWaitingForConcepts ? "Preparing lessons" : conceptsAreMissing ? "Needs retry" : "Finished"}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             )}
@@ -90,6 +93,10 @@ export function DocumentCard({ document, onChanged }: { document: DashboardDocum
       <CardContent>
         {document.chapters.length > 0 ? (
           document.chapters.map((chapter) => <ChapterSection key={chapter.chapter_id} chapter={chapter} onChanged={onChanged} />)
+        ) : isWaitingForConcepts ? (
+          <p className="rounded-2xl bg-muted/70 p-4 text-sm text-muted-foreground">The Abbot found the textbook and is still finding the lessons inside it. Check again shortly.</p>
+        ) : conceptsAreMissing ? (
+          <p className="rounded-2xl bg-amber-50 p-4 text-sm text-amber-900">This textbook has chapters but no lessons yet. Run missing concept extraction or reprocess the textbook.</p>
         ) : (
           <p className="rounded-2xl bg-muted/70 p-4 text-sm text-muted-foreground">Preparing your textbook. Chapters will appear here soon.</p>
         )}

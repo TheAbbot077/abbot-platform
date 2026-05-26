@@ -55,8 +55,10 @@ def _build_document_dashboard(user, document: Document, current, *, include_chap
         "subject_name": document.subject.name if document.subject else None,
         "title": document.title,
         "status": document.status,
+        "chapter_count": len(chapters) if include_chapters else document.chapters.count(),
+        "concept_count": document_required_count,
         "completion_percentage": _percentage(document_passed_count, document_required_count),
-        "current_recommended_next_action": _recommended_next_action(current),
+        "current_recommended_next_action": _recommended_next_action(document, current, document_required_count),
         "current_chapter_title": current_chapter.title if current_chapter else None,
         "current_concept_title": current.concept.title if current else None,
         "chapters": chapters,
@@ -177,8 +179,15 @@ def _dashboard_concept_status(progress: ConceptProgress | None, latest_attempt: 
     return "locked"
 
 
-def _recommended_next_action(current) -> str:
+def _recommended_next_action(document: Document, current, required_concept_count: int) -> str:
     if current is None:
+        # No current concept can mean either "finished" or "concept extraction
+        # has not produced lessons yet." Keep these states separate so the
+        # frontend does not send students into an empty study session.
+        if required_concept_count == 0:
+            if document.status in {"uploaded", "extracting_text", "chapters_detected", "processing_concepts"}:
+                return "wait_for_concepts"
+            return "concepts_missing"
         return "document_complete"
 
     if current.progress.status == ProgressStatus.IN_PROGRESS:

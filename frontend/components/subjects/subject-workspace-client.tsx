@@ -112,7 +112,7 @@ export function SubjectWorkspaceClient({ subjectId }: { subjectId: number }) {
     () => dashboard?.documents.filter((document) => document.subject_id === subjectId) ?? [],
     [dashboard, subjectId]
   );
-  const activeDocument = documents.find((document) => document.current_recommended_next_action !== "document_complete") ?? documents[0];
+  const activeDocument = documents.find(canStudyDocument) ?? documents[0];
   const activeChapter = activeDocument?.chapters.find((chapter) => Number(chapter.completion_percentage) < 100);
   const activeConcept = activeChapter?.concepts.find((concept) => ["available", "in_progress", "failed"].includes(concept.status));
   const completion = subjectCompletion(documents);
@@ -333,7 +333,7 @@ function WorkspaceHero({
             Everything here is scoped to this subject: textbooks, concepts, The Abbot, Ariel, progress, and reinforcement.
           </p>
         </div>
-        {activeDocument ? (
+        {activeDocument && canStudyDocument(activeDocument) ? (
           <Button asChild className="w-full lg:w-auto">
             <Link href={`/learn/${activeDocument.document_id}?subject=${subject.id}`}>
               Continue with The Abbot
@@ -377,7 +377,7 @@ function ContinueSection({
         <CardTitle>Continue Learning</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        {activeDocument ? (
+        {activeDocument && canStudyDocument(activeDocument) ? (
           <>
             <div className="space-y-1">
               <p className="text-lg font-semibold">{activeConceptTitle ?? activeDocument.title}</p>
@@ -389,6 +389,16 @@ function ContinueSection({
               <Link href={`/learn/${activeDocument.document_id}?subject=${subject.id}`}>Start study round</Link>
             </Button>
           </>
+        ) : activeDocument?.current_recommended_next_action === "wait_for_concepts" ? (
+          <div>
+            <p className="font-semibold">The Abbot is preparing lessons</p>
+            <p className="mt-1 text-sm text-muted-foreground">Your chapters are being organized into teachable concepts. Check back in a moment.</p>
+          </div>
+        ) : activeDocument?.current_recommended_next_action === "concepts_missing" ? (
+          <div>
+            <p className="font-semibold">Lessons need a quick retry</p>
+            <p className="mt-1 text-sm text-muted-foreground">This textbook has chapters but no concepts yet. Re-run concept extraction or reprocess the textbook.</p>
+          </div>
         ) : (
           <div>
             <p className="font-semibold">No textbook yet</p>
@@ -441,7 +451,7 @@ function AbbotSection({
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">The Abbot teaches only the currently unlocked concept in this subject's selected textbook.</p>
-        {activeDocument ? (
+        {activeDocument && canStudyDocument(activeDocument) ? (
           <div className="rounded-2xl border bg-background p-4">
             <p className="text-sm font-semibold">{activeConceptTitle ?? activeDocument.title}</p>
             <p className="mt-1 text-sm text-muted-foreground">{activeChapterTitle ?? "All chapters complete"}</p>
@@ -449,6 +459,10 @@ function AbbotSection({
               <Link href={`/learn/${activeDocument.document_id}?subject=${subject.id}`}>Learn with The Abbot</Link>
             </Button>
           </div>
+        ) : activeDocument?.current_recommended_next_action === "wait_for_concepts" ? (
+          <EmptyWorkspaceCard icon={GraduationCap} title="The Abbot is preparing lessons" body="Your textbook is uploaded. The Abbot is still finding what you need to learn." />
+        ) : activeDocument?.current_recommended_next_action === "concepts_missing" ? (
+          <EmptyWorkspaceCard icon={GraduationCap} title="Lessons need a quick retry" body="This textbook has chapters but no concepts yet. Re-run missing concept extraction or reprocess the textbook." />
         ) : (
           <EmptyWorkspaceCard icon={GraduationCap} title="The Abbot is waiting" body="Upload a textbook first, then The Abbot will guide the next concept." />
         )}
@@ -637,6 +651,10 @@ function passedConceptCount(documents: DashboardDocument[]): number {
     ),
     0
   );
+}
+
+function canStudyDocument(document: DashboardDocument): boolean {
+  return ["start_current_concept", "continue_current_concept"].includes(document.current_recommended_next_action);
 }
 
 function subjectCompletion(documents: DashboardDocument[]): string {
