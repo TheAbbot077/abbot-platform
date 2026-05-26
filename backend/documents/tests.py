@@ -1093,6 +1093,24 @@ class ConceptExtractionTests(TestCase):
         self.document.refresh_from_db()
         self.assertEqual(self.document.status, "ready")
 
+    def test_extract_missing_concepts_command_can_run_synchronously(self) -> None:
+        self.document.status = "ready"
+        self.document.save(update_fields=["status"])
+        Chapter.objects.create(
+            document=self.document,
+            title="Motion",
+            sequence_number=1,
+            extracted_text="- Velocity",
+        )
+
+        output = StringIO()
+        call_command("extract_missing_concepts", "--document-id", str(self.document.id), stdout=output)
+
+        self.document.refresh_from_db()
+        self.assertIn("Extracted 1 concept(s)", output.getvalue())
+        self.assertEqual(list(Concept.objects.values_list("title", flat=True)), ["Velocity"])
+        self.assertEqual(self.document.status, "ready")
+
 
 class DocumentUploadApiTests(TestCase):
     def setUp(self) -> None:
