@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 300;
 
 const rawApiProxyTarget =
   process.env.API_PROXY_TARGET ??
@@ -29,12 +30,19 @@ async function proxyRequest(request: NextRequest, context: { params: Promise<{ p
   requestHeaders.delete("content-length");
 
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
-  const upstreamResponse = await fetch(targetUrl, {
+  const upstreamInit: RequestInit & { duplex?: "half" } = {
     method: request.method,
     headers: requestHeaders,
-    body: hasBody ? await request.arrayBuffer() : undefined,
     redirect: "manual",
-  });
+  };
+  if (hasBody) {
+    upstreamInit.body = request.body;
+    // Node's fetch requires duplex when forwarding a streaming request body.
+    // This keeps large PDF uploads from being buffered in the Next.js process.
+    upstreamInit.duplex = "half";
+  }
+
+  const upstreamResponse = await fetch(targetUrl, upstreamInit);
 
   const responseHeaders = new Headers();
   upstreamResponse.headers.forEach((value, key) => {
