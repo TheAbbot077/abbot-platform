@@ -15,6 +15,7 @@ import type {
   DashboardResponse,
   ChapterConcept,
   AuthResponse,
+  DirectUploadUrlResponse,
   DocumentUploadResponse,
   MCQResponse,
   QuizAnswers,
@@ -328,6 +329,55 @@ export async function deleteSubject(subjectId: number): Promise<void> {
 }
 
 export async function uploadDocument(title: string, subjectId: number | null, file: File): Promise<DocumentUploadResponse> {
+  try {
+    return await uploadDocumentDirectly(title, subjectId, file);
+  } catch (caught) {
+    if (isDirectUploadConfigurationError(caught)) {
+      return uploadDocumentThroughDjango(title, subjectId, file);
+    }
+    throw caught;
+  }
+}
+
+async function uploadDocumentDirectly(title: string, subjectId: number | null, file: File): Promise<DocumentUploadResponse> {
+  if (!getCookie("csrftoken")) {
+    await ensureCsrfCookie();
+  }
+
+  const contentType = file.type || "application/pdf";
+  const uploadConfig = await requestJson<DirectUploadUrlResponse>("/documents/direct-upload-url/", {
+    method: "POST",
+    body: JSON.stringify({
+      filename: file.name,
+      content_type: contentType,
+      file_size_bytes: file.size
+    })
+  });
+
+  const uploadResponse = await fetch(uploadConfig.upload_url, {
+    method: uploadConfig.method,
+    headers: uploadConfig.headers,
+    body: file
+  });
+
+  if (!uploadResponse.ok) {
+    throw new Error(`R2 upload failed with status ${uploadResponse.status}`);
+  }
+
+  return requestJson<DocumentUploadResponse>("/documents/complete-direct-upload/", {
+    method: "POST",
+    body: JSON.stringify({
+      title,
+      subject: subjectId,
+      object_key: uploadConfig.object_key,
+      filename: file.name,
+      content_type: contentType,
+      file_size_bytes: file.size
+    })
+  });
+}
+
+async function uploadDocumentThroughDjango(title: string, subjectId: number | null, file: File): Promise<DocumentUploadResponse> {
   if (!getCookie("csrftoken")) {
     await ensureCsrfCookie();
   }
@@ -366,6 +416,10 @@ export async function uploadDocument(title: string, subjectId: number | null, fi
   }
 
   return response.json() as Promise<DocumentUploadResponse>;
+}
+
+function isDirectUploadConfigurationError(error: unknown): boolean {
+  return error instanceof Error && error.message.includes("Direct uploads are not configured yet.");
 }
 
 export async function deleteDocument(documentId: number): Promise<void> {

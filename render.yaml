@@ -42,13 +42,23 @@ services:
         sync: false
       - key: OPENAI_TUTOR_MODEL
         value: gpt-4o-mini
+      - key: CLOUDFLARE_R2_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_R2_ACCESS_KEY_ID
+        sync: false
+      - key: CLOUDFLARE_R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: CLOUDFLARE_R2_BUCKET_NAME
+        sync: false
+      - key: CLOUDFLARE_R2_PUBLIC_BASE_URL
+        sync: false
 
   - type: worker
     name: abbot-study-celery-staging
     runtime: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: celery -A config worker --loglevel=info
+    startCommand: celery -A config worker --loglevel=info --concurrency=1 --prefetch-multiplier=1 --max-tasks-per-child=10
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings_production
@@ -75,6 +85,16 @@ services:
         sync: false
       - key: OPENAI_TUTOR_MODEL
         value: gpt-4o-mini
+      - key: CLOUDFLARE_R2_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_R2_ACCESS_KEY_ID
+        sync: false
+      - key: CLOUDFLARE_R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: CLOUDFLARE_R2_BUCKET_NAME
+        sync: false
+      - key: CLOUDFLARE_R2_PUBLIC_BASE_URL
+        sync: false
 
   - type: worker
     name: abbot-study-celery-beat-staging

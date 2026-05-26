@@ -122,6 +122,14 @@ export type DocumentUploadResponse = {
   updated_at: string;
 };
 
+export type DirectUploadUrlResponse = {
+  upload_url: string;
+  object_key: string;
+  method: "PUT";
+  headers: Record<string, string>;
+  expires_in_seconds: number;
+};
+
 export type ReinforcementRecommendation = {
   id: number;
   concept_id: number;

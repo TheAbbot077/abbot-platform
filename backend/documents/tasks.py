@@ -1,9 +1,11 @@
 from celery import shared_task
 from dataclasses import replace
+from pathlib import Path
 from django.conf import settings
 from django.db import transaction
 
-from .models import Chapter, Concept, Document, DocumentStatus
+from .models import Chapter, Concept, Document, DocumentStatus, DocumentStorageBackend
+from .r2_storage import download_object_to_tempfile
 from .services import (
     classify_document_content,
     detect_ordered_chapters_with_metadata,
@@ -25,8 +27,14 @@ def extract_chapters_from_document(self, document_id: int) -> int:
     document.status = DocumentStatus.EXTRACTING_TEXT
     document.save(update_fields=["status", "updated_at"])
 
+    temp_file_path = None
     try:
-        document_text = extract_text_from_pdf(document.file.path)
+        pdf_path = document.file.path
+        if document.storage_backend == DocumentStorageBackend.R2:
+            temp_file_path = download_object_to_tempfile(document.r2_object_key)
+            pdf_path = temp_file_path
+
+        document_text = extract_text_from_pdf(pdf_path)
         content_classification = classify_document_content(document.title, document_text)
         legacy_result = detect_ordered_chapters_with_metadata(document_text)
         resolver_result = _resolver_shadow_result(document_text)
@@ -36,6 +44,9 @@ def extract_chapters_from_document(self, document_id: int) -> int:
         document.status = DocumentStatus.FAILED
         document.save(update_fields=["status", "updated_at"])
         raise
+    finally:
+        if temp_file_path:
+            Path(temp_file_path).unlink(missing_ok=True)
 
     chapter_ids = []
     with transaction.atomic():

@@ -23,6 +23,11 @@ class ContentClassification(models.TextChoices):
     UNKNOWN = "unknown", "Unknown"
 
 
+class DocumentStorageBackend(models.TextChoices):
+    LOCAL = "local", "Local file storage"
+    R2 = "r2", "Cloudflare R2"
+
+
 class Subject(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="subjects")
     name = models.CharField(max_length=120)
@@ -43,7 +48,16 @@ class Document(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="documents")
     subject = models.ForeignKey(Subject, on_delete=models.SET_NULL, related_name="documents", null=True, blank=True)
     title = models.CharField(max_length=255)
-    file = models.FileField(upload_to="documents/")
+    file = models.FileField(upload_to="documents/", blank=True)
+    storage_backend = models.CharField(
+        max_length=16,
+        choices=DocumentStorageBackend.choices,
+        default=DocumentStorageBackend.LOCAL,
+    )
+    r2_object_key = models.CharField(max_length=512, blank=True)
+    original_filename = models.CharField(max_length=255, blank=True)
+    file_size_bytes = models.PositiveBigIntegerField(null=True, blank=True)
+    content_type = models.CharField(max_length=120, blank=True)
     status = models.CharField(max_length=32, choices=DocumentStatus.choices, default=DocumentStatus.UPLOADED)
     parser_version = models.CharField(max_length=32, default="v1")
     parser_strategy = models.CharField(max_length=120, blank=True, null=True)

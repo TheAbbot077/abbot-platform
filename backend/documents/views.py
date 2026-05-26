@@ -1,11 +1,18 @@
 from django.db.models import Count
 from rest_framework import generics, permissions, response, status, viewsets
+from rest_framework.decorators import action
 
 from core.audit import log_admin_action
 
 from .deletion import delete_document_tree
-from .models import Concept, Document, Subject
-from .serializers import ConceptSerializer, DocumentSerializer, SubjectSerializer
+from .models import Concept, Document, DocumentStorageBackend, Subject
+from .serializers import (
+    ConceptSerializer,
+    DirectUploadCompleteSerializer,
+    DirectUploadRequestSerializer,
+    DocumentSerializer,
+    SubjectSerializer,
+)
 from .tasks import extract_chapters_from_document
 
 
@@ -37,6 +44,30 @@ class DocumentViewSet(viewsets.ModelViewSet):
             description=f"User {self.request.user.username} deleted textbook '{title}'.",
             metadata={"title": title, "owner_id": self.request.user.id},
         )
+
+    @action(detail=False, methods=["post"], url_path="direct-upload-url")
+    def direct_upload_url(self, request):
+        serializer = DirectUploadRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return response.Response(serializer.create_upload_payload(request.user))
+
+    @action(detail=False, methods=["post"], url_path="complete-direct-upload")
+    def complete_direct_upload(self, request):
+        serializer = DirectUploadCompleteSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        document = Document.objects.create(
+            owner=request.user,
+            subject=data.get("subject"),
+            title=data["title"],
+            storage_backend=DocumentStorageBackend.R2,
+            r2_object_key=data["object_key"],
+            original_filename=data["filename"],
+            file_size_bytes=data["file_size_bytes"],
+            content_type=data.get("content_type") or "application/pdf",
+        )
+        extract_chapters_from_document.delay(document.id)
+        return response.Response(DocumentSerializer(document, context={"request": request}).data, status=status.HTTP_201_CREATED)
 
 
 class SubjectViewSet(viewsets.ModelViewSet):

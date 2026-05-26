@@ -2,7 +2,8 @@ from django.db import transaction
 
 from learning.models import StudentAIReinforcementReport
 
-from .models import Document
+from .models import Document, DocumentStorageBackend
+from .r2_storage import delete_object
 
 
 def delete_document_tree(document: Document) -> None:
@@ -13,12 +14,16 @@ def delete_document_tree(document: Document) -> None:
     file_field = document.file
     file_name = file_field.name
     storage = file_field.storage
+    r2_object_key = document.r2_object_key
+    uses_r2 = document.storage_backend == DocumentStorageBackend.R2
 
     with transaction.atomic():
         document.delete()
         _remove_stale_recommendations_from_daily_reports(owner, concept_ids)
 
-    if file_name and storage.exists(file_name):
+    if uses_r2:
+        delete_object(r2_object_key)
+    elif file_name and storage.exists(file_name):
         storage.delete(file_name)
 
 
