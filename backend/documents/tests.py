@@ -1111,6 +1111,22 @@ class ConceptExtractionTests(TestCase):
         self.assertEqual(list(Concept.objects.values_list("title", flat=True)), ["Velocity"])
         self.assertEqual(self.document.status, "ready")
 
+    def test_extract_missing_concepts_command_repairs_non_required_concepts(self) -> None:
+        chapter = Chapter.objects.create(
+            document=self.document,
+            title="Motion",
+            sequence_number=1,
+            extracted_text="- Velocity",
+        )
+        concept = Concept.objects.create(chapter=chapter, title="Velocity", sequence_number=1, is_required=False)
+
+        output = StringIO()
+        call_command("extract_missing_concepts", "--document-id", str(self.document.id), stdout=output)
+
+        concept.refresh_from_db()
+        self.assertTrue(concept.is_required)
+        self.assertIn("Marked 1 existing concept(s) required", output.getvalue())
+
 
 class DocumentUploadApiTests(TestCase):
     def setUp(self) -> None:
